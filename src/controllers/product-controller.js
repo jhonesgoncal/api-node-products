@@ -1,71 +1,69 @@
 'use strict'
 const mongoose = require('mongoose');
 const Product = mongoose.model('Product');
+const ValidationContract = require('../validators/fluent-validator');
+const repository = require('../repositories/product-repository');
 
 exports.get = (req, res, next) => {
-    Product
-    .find({
-        active: true
-    }, '_id title price slug')
-    .then(data => {
-        res.status(200).send(data);
-    }).catch(e => {
-        res.status(400).send({ 
-            message: 'Falha ao buscar os produtos!', 
-            data: e
+    repository.get()
+        .then(data => {
+            res.status(200).send(data);
+        }).catch(e => {
+            res.status(400).send({ 
+                message: 'Falha ao buscar os produtos!', 
+                data: e
+            });
         });
-    });
 }
 
 exports.getBySlug = (req, res, next) => {
-    Product
-    .findOne({
-        slug: req.params.slug,
-        active: true
-    }, '_id title description price slug tags')
-    .then(data => {
-        res.status(200).send(data);
-    }).catch(e => {
-        res.status(400).send({ 
-            message: 'Falha ao buscar os produtos!', 
-            data: e
+    repository.getBySlug(req.params.slug)
+        .then(data => {
+            res.status(200).send(data);
+        }).catch(e => {
+            res.status(400).send({ 
+                message: 'Falha ao buscar os produtos!', 
+                data: e
+            });
         });
-    });
 }
 
 exports.getById = (req, res, next) => {
-    Product
-    .findById( req.params.id)
-    .then(data => {
-        res.status(200).send(data);
-    }).catch(e => {
-        res.status(400).send({ 
-            message: 'Falha ao buscar o produto!', 
-            data: e
+    repository.getById(req.params.id)
+        .then(data => {
+            res.status(200).send(data);
+        }).catch(e => {
+            res.status(400).send({ 
+                message: 'Falha ao buscar o produto!', 
+                data: e
+            });
         });
-    });
 }
 
 exports.getByTag = (req, res, next) => {
-    Product
-    .find({ 
-        tags: req.params.tag,
-        active: true
-    }, 'title description price slug tags')
-    .then(data => {
-        res.status(200).send(data);
-    }).catch(e => {
-        res.status(400).send({ 
-            message: 'Falha ao buscar o produto!', 
-            data: e
+    repository.getByTag(req.params.tag)
+        .then(data => {
+            res.status(200).send(data);
+        }).catch(e => {
+            res.status(400).send({ 
+                message: 'Falha ao buscar o produto!', 
+                data: e
+            });
         });
-    });
 }
 
 exports.post = (req, res, next) => {
-    var product = new Product(req.body);
-    product
-        .save()
+    let contract = new ValidationContract();
+    contract.hasMinLen(req.body.title, 3, 'O titulo deve conter pelo menos 3 caracteres.');
+    contract.hasMinLen(req.body.description, 3, 'A descricao deve conter pelo menos  3 caracteres.');
+
+    if(!contract.isValid()){
+        res.status(400).send(contract.errors()).end();
+        return;
+    }
+
+    repository
+        .create(req.body)
         .then(data => {
             res.status(201).send({ 
                 message: 'Produto cadastrado com sucesso!'
@@ -80,15 +78,8 @@ exports.post = (req, res, next) => {
 }
 
 exports.put = (req, res, next) => {
-   Product
-        .findByIdAndUpdate(req.params.id, {
-            $set: {
-                title: req.body.title,
-                description: req.body.description,
-                price: req.body.price,
-                slug: req.body.slug
-            }
-        })
+    repository
+        .update(req.params.id, req.body)
         .then(data => {
             res.status(200).send({ 
                 message: 'Produto atualizado com sucesso!'
@@ -102,8 +93,7 @@ exports.put = (req, res, next) => {
 };
 
 exports.delete = (req, res, next) => {
-    Product
-    .findOneAndRemove(req.params.id)
+   repository.delete(req.params.id)
     .then(data => {
         res.status(200).send({ 
             message: 'Produto removido com sucesso!'
