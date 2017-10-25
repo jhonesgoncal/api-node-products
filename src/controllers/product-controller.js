@@ -10,7 +10,7 @@ exports.get = (req, res, next) => {
     .then(data => {
         res.status(200).send(data);
     }).catch(e => {
-        res.status(201).send({ 
+        res.status(400).send({ 
             message: 'Falha ao buscar os produtos!', 
             data: e
         });
@@ -26,8 +26,37 @@ exports.getBySlug = (req, res, next) => {
     .then(data => {
         res.status(200).send(data);
     }).catch(e => {
-        res.status(201).send({ 
+        res.status(400).send({ 
             message: 'Falha ao buscar os produtos!', 
+            data: e
+        });
+    });
+}
+
+exports.getById = (req, res, next) => {
+    Product
+    .findById( req.params.id)
+    .then(data => {
+        res.status(200).send(data);
+    }).catch(e => {
+        res.status(400).send({ 
+            message: 'Falha ao buscar o produto!', 
+            data: e
+        });
+    });
+}
+
+exports.getByTag = (req, res, next) => {
+    Product
+    .find({ 
+        tags: req.params.tag,
+        active: true
+    }, 'title description price slug tags')
+    .then(data => {
+        res.status(200).send(data);
+    }).catch(e => {
+        res.status(400).send({ 
+            message: 'Falha ao buscar o produto!', 
             data: e
         });
     });
@@ -35,28 +64,54 @@ exports.getBySlug = (req, res, next) => {
 
 exports.post = (req, res, next) => {
     var product = new Product(req.body);
-    product.save()
-    .then(data => {
-        res.status(201).send({ 
-            message: 'Produto cadastrado com sucesso!'
+    product
+        .save()
+        .then(data => {
+            res.status(201).send({ 
+                message: 'Produto cadastrado com sucesso!'
+            });
+        }).catch(e => {
+            res.status(400).send({ 
+                message: 'Falha ao cadastrar o produto!', 
+                data: e
+            });
         });
-    }).catch(e => {
-        res.status(400).send({ 
-            message: 'Falha ao cadastrar o produto!', 
-            data: e
-        });
-    });
     
 }
 
 exports.put = (req, res, next) => {
-    const id = req.params.id;
-    res.status(200).send({
-        id: id,
-        item: req.body
-    })
+   Product
+        .findByIdAndUpdate(req.params.id, {
+            $set: {
+                title: req.body.title,
+                description: req.body.description,
+                price: req.body.price,
+                slug: req.body.slug
+            }
+        })
+        .then(data => {
+            res.status(200).send({ 
+                message: 'Produto atualizado com sucesso!'
+            });
+        }).catch(e => {
+            res.status(400).send({ 
+                message: 'Falha ao atualizar o produto!', 
+                data: e
+            });
+        });
 };
 
 exports.delete = (req, res, next) => {
-    res.status(201).send( req.body)
+    Product
+    .findOneAndRemove(req.params.id)
+    .then(data => {
+        res.status(200).send({ 
+            message: 'Produto removido com sucesso!'
+        });
+    }).catch(e => {
+        res.status(400).send({ 
+            message: 'Falha ao remover o produto!', 
+            data: e
+        });
+    });
 }
