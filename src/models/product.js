@@ -33,7 +33,12 @@ const schema = new Schema({
     tags:[{
         type: String,
         require: true
-    }]
+    }],
+    title: {
+        type: String,
+        required: true,
+        trim: true
+    }
 });
 
 module.exports = mongoose.model('Product', schema);
