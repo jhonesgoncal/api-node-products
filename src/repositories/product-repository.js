@@ -5,7 +5,7 @@ const Product = mongoose.model('Product');
 exports.get = async() => {
     const res = await Product.find({
             active: true
-        }, '_id title price slug');
+        }, '_id title price slug description image');
         return res;
 }
 
