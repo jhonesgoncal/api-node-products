@@ -21,6 +21,7 @@ pipeline {
     stage('Deploy') {
       steps {
         sh 'echo fazendo deploy'
+        sh 'ls -lha'
       }
     }
   }
