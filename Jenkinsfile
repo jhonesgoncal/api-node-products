@@ -12,9 +12,14 @@ pipeline {
         sh 'pwd'
       }
     }
+    stage('Aprovacao'){
+      steps {
+	input 'Aprova o deploy?'
+      }
+    }
     stage('Deploy'){
       steps {
-	sh 'Deploy'
+	sh 'fazendo deploy'
       }
     }
   }
